@@ -43,6 +43,7 @@ export const routes: Array<RouteRecordRaw> = [
     props: true,
     meta: {
       access: AccessEnum.USER,
+      hideInMenu: true,
     },
   },
   {
