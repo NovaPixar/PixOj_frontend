@@ -3,7 +3,11 @@
     <a-row :gutter="[24, 24]">
       <a-col :md="12" :xs="24">
         <a-tabs default-active-key="question">
-          <a-tab-pane key="question" title="题目描述">
+          <a-tab-pane key="question">
+            <template #title>
+              <icon-list />
+              题目
+            </template>
             <a-card v-if="question" :title="question.title" hoverable>
               <a-descriptions
                 title="判题条件"
@@ -32,8 +36,19 @@
               </template>
             </a-card>
           </a-tab-pane>
-          <a-tab-pane key="comment" title="评论" disabled> 评论区</a-tab-pane>
-          <a-tab-pane key="answer" title="题解"> 暂时无法查看答案</a-tab-pane>
+          <a-tab-pane key="comment" title="评论" disabled>
+            <template #title>
+              <icon-public />
+              评论
+            </template>
+          </a-tab-pane>
+          <a-tab-pane key="answer">
+            <template #title>
+              <icon-experiment />
+              题解
+            </template>
+            暂时无法查看答案
+          </a-tab-pane>
         </a-tabs>
       </a-col>
       <a-col :md="12" :xs="24">
@@ -48,10 +63,15 @@
               <a-option>python</a-option>
               <a-option>cpp</a-option>
               <a-option>go</a-option>
+              <a-option>html</a-option>
             </a-select>
           </a-form-item>
         </a-form>
-        <CodeEditor :value="form.code as String" :language="form.language" />
+        <CodeEditor
+          :value="form.code as String"
+          :language="form.language"
+          :handle-change="changCode"
+        />
         <a-divider size="0" />
         <a-button type="primary" style="min-width: 200px" @click="doSubmit"
           >提交代码
@@ -75,6 +95,7 @@ import { useRouter } from "vue-router";
 import CodeEditor from "@/components/CodeEditor.vue";
 import MdEditor from "@/components/MdEditor.vue";
 import MdViewer from "@/components/MdViewer.vue";
+import "@arco-design/web-vue/dist/arco.css";
 
 interface Props {
   id: string;
@@ -101,13 +122,20 @@ const form = ref<QuestionSubmitAddRequest>({
   code: "",
 });
 
+const codeValue = ref();
+
 /**
  * 提交代码
  */
 const doSubmit = async () => {
-  const res = await QuestionSubmitControllerService.doQuestionSubmitUsingPost(
-    form.value
-  );
+  if (!question.value?.id) {
+    return;
+  }
+  const res = await QuestionSubmitControllerService.doQuestionSubmitUsingPost({
+    ...form.value,
+    questionId: question.value.id,
+  });
+
   if (res.code === 0) {
     message.success("提交成功");
   } else {
@@ -116,11 +144,15 @@ const doSubmit = async () => {
 };
 
 /**
- * 页面加载时请求数据
+ * 页面加载时,请求数据
  */
 onMounted(() => {
   loadData();
 });
+
+const changCode = (value: string) => {
+  form.value.code = value;
+};
 </script>
 
 <style>
